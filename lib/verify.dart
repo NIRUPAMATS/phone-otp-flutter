@@ -1,5 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:otp_verification/main.dart';
+import 'package:otp_verification/phone.dart';
 import 'package:pinput/pinput.dart';
 
 class MyVerify extends StatefulWidget {
@@ -10,8 +12,11 @@ class MyVerify extends StatefulWidget {
 }
 
 class _MyVerifyState extends State<MyVerify> {
+  final FirebaseAuth auth=FirebaseAuth.instance;
+  
   @override
   Widget build(BuildContext context) {
+    var code='';
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -63,6 +68,9 @@ class _MyVerifyState extends State<MyVerify> {
                 length: 6,
                 showCursor: true,
                 onCompleted: (pin)=>print(pin),
+                onChanged: (value){
+                  code=value;
+                },
               ),
               SizedBox(height: 20,),
               SizedBox(
@@ -73,7 +81,20 @@ class _MyVerifyState extends State<MyVerify> {
                         primary: Colors.green.shade600,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10))),
-                    onPressed: () {},
+                    onPressed: () async {
+                      try{
+                        // Create a PhoneAuthCredential with the code
+                        PhoneAuthCredential credential = PhoneAuthProvider.credential(verificationId: MyPhone.otp, smsCode: code);
+
+                        // Sign the user in (or link) with the credential
+                        await auth.signInWithCredential(credential);
+                        Navigator.pushNamedAndRemoveUntil(context, 'home', (route) => false);
+
+                      }
+                      catch(e){
+                        print("wrong otp");
+                      }
+                    },
                     child: Text("Verify Phone Number")),
               ),
               Row(
